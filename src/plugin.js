@@ -52,10 +52,11 @@ class hlsQualitySelectorPlugin {
 
     // If there is quality levels plugin and the HLS tech exists
     // then continue.
-    if(this.player.qualityLevels && this.getHls()) {
+    if (true || this.player.qualityLevels && this.getHls()) {
       // Create the quality button.
       this.createQualityButton();
       this.bindPlayerEvents();
+      this.onEmptyQualityLevel();
     }
   }
 
@@ -64,6 +65,7 @@ class hlsQualitySelectorPlugin {
   }
 
   bindPlayerEvents() {
+    this.player.on('playlistitem', this.onEmptyQualityLevel.bind(this));
     this.player.qualityLevels().on('addqualitylevel', this.onAddQualityLevel.bind(this));
   }
 
@@ -73,20 +75,28 @@ class hlsQualitySelectorPlugin {
     const videoJsButtonClass = videojs.getComponent('MenuButton');
     const concreteButtonClass = videojs.extend(videoJsButtonClass, {
 
-      constructor: function() {
+      constructor: function(label) {
+        this.label = label;
+        this.label.innerHTML = "Auto";
+
         videoJsButtonClass.call(this, player, {title : player.localize('Quality')});
+
+        this.el().appendChild(label);
       },
       createItems : function() {
         return [];
       }
     });
 
-    this._qualityButton = new concreteButtonClass();
+    let label = document.createElement('span');
+    videojs.addClass(label, 'vjs-resolution-button-label');
+
+    this._qualityButton = new concreteButtonClass(label);
 
     const placementIndex = player.controlBar.children().length - 2;
     const concreteButtonInstance = player.controlBar.addChild(this._qualityButton, {componentClass: 'qualitySelector'}, placementIndex);
     concreteButtonInstance.addClass("vjs-quality-selector");
-    concreteButtonInstance.addClass("vjs-icon-hd");
+    //concreteButtonInstance.addClass("vjs-icon-hd");
     concreteButtonInstance.removeClass("vjs-hidden");
 
   };
@@ -128,27 +138,45 @@ class hlsQualitySelectorPlugin {
     const levels = qualityList.levels_ || [];
     const levelItems = [];
 
-    for(let i = 0; i < levels.length; ++i) {
-      const levelItem = this.getQualityMenuItem.call(this, {
-        label: levels[i].height + 'p',
-        value: levels[i].height
-      });
-      levelItems.push(levelItem);
+    if (levels.length > 0) {
+      for (let i = 0; i < levels.length; ++i) {
+        const levelItem = this.getQualityMenuItem.call(this, {
+          label: levels[i].height + 'p',
+          value: levels[i].height
+        });
+        levelItems.push(levelItem);
+      }
+
+      levelItems.push(this.getQualityMenuItem.call(this, {
+        label: 'Auto',
+        value: 'auto',
+        selected: true
+      }));
+
+      if (this._qualityButton) {
+        this._qualityButton.createItems = function () {
+          return levelItems;
+        };
+        this._qualityButton.update();
+      }
+    } else {
+      if (this._qualityButton) {
+        this._qualityButton.hide();
+      }
     }
+  };
 
-    levelItems.push(this.getQualityMenuItem.call(this, {
-      label: 'Auto',
-      value: 'auto',
-      selected: true
-    }));
+  onEmptyQualityLevel(event) {
 
-    if(this._qualityButton) {
-      this._qualityButton.createItems = function(){
-        return levelItems;
+    const player = this.player;
+
+    if (this._qualityButton) {
+      this._qualityButton.createItems = function () {
+        return {};
       };
       this._qualityButton.update();
+      this._qualityButton.hide();
     }
-
   };
 
   setQuality(height){
@@ -158,6 +186,7 @@ class hlsQualitySelectorPlugin {
       quality.enabled = (quality.height === height || height === 'auto');
     }
     this._qualityButton.unpressButton();
+    this._qualityButton.label.innerHTML = height;
   };
 
 
