@@ -77,7 +77,7 @@ class hlsQualitySelectorPlugin {
 
       constructor: function(label) {
         this.label = label;
-        this.label.innerHTML = "Auto";
+        this.label.innerHTML = "auto";
 
         videoJsButtonClass.call(this, player, {title : player.localize('Quality')});
 
@@ -168,14 +168,13 @@ class hlsQualitySelectorPlugin {
 
   onEmptyQualityLevel(event) {
 
-    const player = this.player;
-
     if (this._qualityButton) {
       this._qualityButton.createItems = function () {
         return {};
       };
       this._qualityButton.update();
       this._qualityButton.hide();
+      this._qualityButton.label.innerHTML = "auto";
     }
   };
 
