@@ -158,19 +158,12 @@ class HlsQualitySelectorPlugin {
     const levelItems = [];
 
     if (levels.length > 0) {
-      function compare(a,b) {
-        if (a.height < b.height)
-          return -1;
-        if (a.height > b.height)
-          return 1;
-        return 0;
-      }
-      levels.sort(compare);
+      levels.sort(function(a,b) {return (a.height > b.height) ? 1 : ((b.height > a.height) ? -1 : 0);});
 
       for (let i = 0; i < levels.length; ++i) {
         if (!levelItems.filter(_existingItem => {
-            return _existingItem.item && _existingItem.item.value === levels[i].height;
-      }).length) {
+          return _existingItem.item && _existingItem.item.value === levels[i].height;
+        }).length) {
           const levelItem = this.getQualityMenuItem.call(this, {
             label: levels[i].height + 'p',
             value: levels[i].height
@@ -192,23 +185,21 @@ class HlsQualitySelectorPlugin {
         };
         this._qualityButton.update();
       }
-    } else {
-      if (this._qualityButton) {
-        this._qualityButton.hide();
-      }
+    } else if (this._qualityButton) {
+      this._qualityButton.hide();
     }
-  };
+  }
 
   onEmptyQualityLevel(event) {
 
     if (this._qualityButton) {
-      this._qualityButton.createItems = function () {
+      this._qualityButton.createItems = function() {
         return {};
       };
       this._qualityButton.update();
       this._qualityButton.hide();
     }
-  };
+  }
 
   /**
    * Sets quality (based on media height)
