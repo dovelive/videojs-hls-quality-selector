@@ -158,7 +158,9 @@ class HlsQualitySelectorPlugin {
     const levelItems = [];
 
     if (levels.length > 0) {
-      levels.sort(function(a,b) {return (a.height > b.height) ? 1 : ((b.height > a.height) ? -1 : 0);});
+      levels.sort(function(a, b) {
+        return (a.height > b.height) ? 1 : ((b.height > a.height) ? -1 : 0);
+      });
 
       for (let i = 0; i < levels.length; ++i) {
         if (!levelItems.filter(_existingItem => {
